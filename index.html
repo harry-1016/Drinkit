@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="theme-color" content="#0A0A0A"/>
+<title>DeliveryOS — App Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:#0A0A0A;color:#F5F5F0;min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;
+  position:relative;overflow:hidden}
+body::before{content:'';position:fixed;top:-100px;left:-100px;width:500px;height:500px;
+  background:radial-gradient(circle,rgba(255,77,0,.12),transparent 60%);pointer-events:none}
+body::after{content:'';position:fixed;bottom:-100px;right:-100px;width:400px;height:400px;
+  background:radial-gradient(circle,rgba(108,71,255,.1),transparent 60%);pointer-events:none}
+.hub{max-width:400px;width:100%;position:relative;z-index:1}
+.hub-logo{font-family:'Unbounded',sans-serif;font-size:28px;font-weight:900;text-align:center;
+  background:linear-gradient(135deg,#FF4D00,#FF8C42);-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  margin-bottom:8px}
+.hub-sub{text-align:center;color:#888;font-size:14px;margin-bottom:40px}
+.app-card{display:flex;align-items:center;gap:16px;background:#1C1C1E;border:1px solid #2A2A2A;
+  border-radius:20px;padding:20px;text-decoration:none;color:#F5F5F0;margin-bottom:12px;
+  transition:transform .15s,border-color .15s;position:relative;overflow:hidden}
+.app-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .2s}
+.app-card:hover{transform:translateY(-2px)}
+.app-card:active{transform:scale(.97)}
+.app-card.customer::before{background:linear-gradient(135deg,rgba(255,77,0,.06),transparent)}
+.app-card.driver::before{background:linear-gradient(135deg,rgba(0,196,140,.06),transparent)}
+.app-card.admin::before{background:linear-gradient(135deg,rgba(108,71,255,.06),transparent)}
+.app-card:hover::before{opacity:1}
+.app-card.customer{border-color:#3A1500}
+.app-card.driver{border-color:#002A1E}
+.app-card.admin{border-color:#1E1040}
+.app-icon{font-size:44px;flex-shrink:0}
+.app-info{}
+.app-name{font-family:'Unbounded',sans-serif;font-size:16px;font-weight:700;margin-bottom:4px}
+.app-desc{font-size:13px;color:#888;line-height:1.4}
+.app-tag{display:inline-block;margin-top:6px;font-size:10px;font-weight:700;padding:3px 8px;
+  border-radius:6px;text-transform:uppercase;letter-spacing:1px}
+.customer .app-tag{background:rgba(255,77,0,.15);color:#FF8C42}
+.driver .app-tag{background:rgba(0,196,140,.15);color:#00C48C}
+.admin .app-tag{background:rgba(108,71,255,.2);color:#A78BFA}
+.arrow{margin-left:auto;font-size:22px;color:#444;flex-shrink:0}
+.footer{text-align:center;color:#444;font-size:12px;margin-top:28px}
+</style>
+</head>
+<body>
+<div class="hub">
+  <div class="hub-logo">DeliveryOS</div>
+  <div class="hub-sub">Choose your role to get started</div>
+
+  <a href="customer/index.html" class="app-card customer">
+    <div class="app-icon">🛍️</div>
+    <div class="app-info">
+      <div class="app-name">Customer App</div>
+      <div class="app-desc">Browse menu, place orders and track deliveries in real time</div>
+      <span class="app-tag">QuickDrop</span>
+    </div>
+    <div class="arrow">›</div>
+  </a>
+
+  <a href="delivery/index.html" class="app-card driver">
+    <div class="app-icon">🚗</div>
+    <div class="app-info">
+      <div class="app-name">Driver App</div>
+      <div class="app-desc">Accept orders, update delivery status and track your earnings</div>
+      <span class="app-tag">DriveOS</span>
+    </div>
+    <div class="arrow">›</div>
+  </a>
+
+  <a href="admin/index.html" class="app-card admin">
+    <div class="app-icon">⚙️</div>
+    <div class="app-info">
+      <div class="app-name">Admin Panel</div>
+      <div class="app-desc">Manage menu, monitor orders and view business analytics</div>
+      <span class="app-tag">Admin</span>
+    </div>
+    <div class="arrow">›</div>
+  </a>
+
+  <div class="footer">All data shared in real time via localStorage + BroadcastChannel</div>
+</div>
+<script>
+// Register SW for hub
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
