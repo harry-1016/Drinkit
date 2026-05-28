@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="theme-color" content="#00C48C"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="DriveOS"/>
+<title>DriveOS — Driver App</title>
+<link rel="manifest" href="manifest.json"/>
+<link rel="icon" href="../shared/icons/icon-192.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --brand:#00C48C;--brand2:#00F5B0;--dark:#050C0A;--surface:#0D1A15;
+  --card:#122018;--border:#1E3329;--text:#E8F5F0;--muted:#5A8070;
+  --danger:#FF4D6D;--warning:#FFB800;--info:#3D9BFF;
+  --safe-top:env(safe-area-inset-top);--safe-bot:env(safe-area-inset-bottom);
+}
+html{height:100%;background:var(--dark)}
+body{font-family:'Inter',sans-serif;color:var(--text);background:var(--dark);
+  min-height:100%;-webkit-tap-highlight-color:transparent}
+button{font-family:inherit;cursor:pointer;border:none;outline:none}
+
+#app{max-width:430px;margin:0 auto;min-height:100vh;background:var(--dark);display:flex;flex-direction:column}
+
+/* Header */
+.header{position:sticky;top:0;z-index:100;padding:calc(var(--safe-top)+12px) 20px 12px;
+  background:rgba(5,12,10,.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:var(--brand2)}
+.online-toggle{display:flex;align-items:center;gap:8px;background:var(--card);
+  border:1px solid var(--border);border-radius:10px;padding:8px 14px;cursor:pointer;
+  font-size:13px;font-weight:600;transition:all .2s}
+.online-toggle.active{background:rgba(0,196,140,.15);border-color:var(--brand)}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);transition:background .2s}
+.online-toggle.active .status-dot{background:var(--brand);box-shadow:0 0 8px var(--brand)}
+
+/* Stats bar */
+.stats-bar{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);
+  border-bottom:1px solid var(--border)}
+.stat-cell{background:var(--dark);padding:14px 10px;text-align:center}
+.stat-val{font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:var(--brand2)}
+.stat-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:3px}
+
+/* Pages */
+.page{display:none;flex:1;flex-direction:column}
+.page.active{display:flex}
+
+/* Orders list */
+.orders-wrap{padding:16px 16px 100px;flex:1;overflow-y:auto}
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.section-title{font-family:'Space Mono',monospace;font-size:14px;color:var(--brand2);text-transform:uppercase;letter-spacing:1px}
+.refresh-btn{padding:6px 14px;border-radius:8px;background:var(--card);border:1px solid var(--border);
+  font-size:12px;color:var(--muted);font-family:'Space Mono',monospace}
+
+/* Order card */
+.order-card{background:var(--card);border-radius:16px;border:1px solid var(--border);
+  padding:16px;margin-bottom:12px;position:relative;overflow:hidden}
+.order-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--brand);
+  border-radius:3px 0 0 3px}
+.order-card.urgent::before{background:var(--danger);box-shadow:0 0 12px var(--danger)}
+.oc-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.oc-id{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted)}
+.oc-time{font-family:'Space Mono',monospace;font-size:11px;color:var(--warning)}
+.oc-customer{font-size:15px;font-weight:700;margin-bottom:4px}
+.oc-address{font-size:13px;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:5px}
+.oc-items{font-size:12px;color:var(--muted);background:var(--surface);border-radius:8px;
+  padding:8px 10px;margin-bottom:12px;line-height:1.6}
+.oc-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.oc-total{font-family:'Space Mono',monospace;font-size:16px;font-weight:700;color:var(--brand2)}
+.oc-tip{font-size:11px;background:rgba(0,196,140,.15);color:var(--brand);border-radius:6px;padding:3px 8px;font-weight:600}
+.action-btns{display:grid;gap:8px}
+.btn-accept{padding:12px;border-radius:12px;background:var(--brand);color:#000;
+  font-weight:700;font-size:14px;font-family:'Space Mono',monospace;transition:transform .15s,opacity .15s}
+.btn-accept:active{transform:scale(.97)}
+.btn-picked{padding:12px;border-radius:12px;background:var(--info);color:#fff;font-weight:700;font-size:14px;font-family:'Space Mono',monospace}
+.btn-delivered{padding:12px;border-radius:12px;background:var(--brand2);color:#000;font-weight:700;font-size:14px;font-family:'Space Mono',monospace}
+.btn-reject{padding:10px;border-radius:12px;background:transparent;border:1px solid var(--border);
+  color:var(--muted);font-size:13px}
+
+/* Status chip */
+.chip{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;font-family:'Space Mono',monospace}
+.chip-pending{background:rgba(255,184,0,.15);color:var(--warning)}
+.chip-accepted,.chip-preparing{background:rgba(61,155,255,.15);color:var(--info)}
+.chip-out{background:rgba(0,196,140,.15);color:var(--brand)}
+.chip-delivered{background:rgba(0,245,176,.1);color:var(--brand2)}
+
+/* Bottom Nav */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;
+  background:rgba(5,12,10,.95);backdrop-filter:blur(20px);border-top:1px solid var(--border);
+  padding:8px 0 calc(8px + var(--safe-bot));display:flex;z-index:100}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;
+  padding:6px 0;cursor:pointer;color:var(--muted);font-size:10px;font-weight:600;
+  text-transform:uppercase;letter-spacing:.5px;font-family:'Space Mono',monospace}
+.nav-item.active{color:var(--brand2)}
+
+/* Earnings page */
+.earnings-page{padding:20px 16px 100px}
+.earn-header{font-family:'Space Mono',monospace;font-size:22px;font-weight:700;color:var(--brand2);margin-bottom:20px}
+.earn-card{background:var(--card);border-radius:16px;border:1px solid var(--border);padding:20px;margin-bottom:14px}
+.earn-card-title{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px}
+.earn-big{font-family:'Space Mono',monospace;font-size:32px;font-weight:700;color:var(--brand2)}
+.earn-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.earn-row:last-child{border-bottom:none}
+
+/* Toast */
+.toast{position:fixed;bottom:calc(80px + var(--safe-bot));left:50%;transform:translateX(-50%) translateY(10px);
+  background:var(--card);border:1px solid var(--brand);border-radius:12px;padding:12px 20px;
+  font-size:14px;font-weight:600;z-index:999;opacity:0;pointer-events:none;transition:all .3s;
+  font-family:'Space Mono',monospace;color:var(--brand2);white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Empty */
+.empty{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty-icon{font-size:56px;margin-bottom:16px;opacity:.4}
+
+/* Pulse */
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.pulse{animation:pulse 2s ease infinite}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="header">
+    <span class="logo">DRIVEOS</span>
+    <button class="online-toggle" id="onlineToggle" onclick="toggleOnline()">
+      <div class="status-dot"></div>
+      <span id="onlineLabel">Go Online</span>
+    </button>
+  </header>
+
+  <div class="stats-bar">
+    <div class="stat-cell">
+      <div class="stat-val" id="statDeliveries">0</div>
+      <div class="stat-lbl">Today</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-val" id="statEarnings">$0</div>
+      <div class="stat-lbl">Earned</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-val" id="statRating">4.9★</div>
+      <div class="stat-lbl">Rating</div>
+    </div>
+  </div>
+
+  <!-- ACTIVE ORDERS PAGE -->
+  <div class="page active" id="activePage">
+    <div class="orders-wrap">
+      <div class="section-head">
+        <span class="section-title">📍 New Requests</span>
+        <button class="refresh-btn" onclick="loadOrders()">↻ Refresh</button>
+      </div>
+      <div id="newOrdersList"></div>
+
+      <div class="section-head" style="margin-top:24px">
+        <span class="section-title">🚗 My Deliveries</span>
+      </div>
+      <div id="myOrdersList"></div>
+    </div>
+  </div>
+
+  <!-- EARNINGS PAGE -->
+  <div class="page" id="earningsPage">
+    <div class="earnings-page">
+      <div class="earn-header">💰 Earnings</div>
+      <div class="earn-card">
+        <div class="earn-card-title">Total Earned Today</div>
+        <div class="earn-big" id="earnBig">$0.00</div>
+      </div>
+      <div class="earn-card">
+        <div class="earn-card-title">Breakdown</div>
+        <div id="earningsBreakdown"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROFILE PAGE -->
+  <div class="page" id="profilePage">
+    <div style="padding:24px 16px 100px">
+      <div class="earn-card" style="text-align:center;margin-bottom:16px">
+        <div style="font-size:56px;margin-bottom:12px">🧑‍✈️</div>
+        <div style="font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:var(--brand2)">Sam Rivera</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:4px">Honda Civic • ABC-1234</div>
+        <div style="margin-top:12px;display:flex;justify-content:center;gap:16px">
+          <div><div style="font-family:'Space Mono',monospace;font-size:18px;color:var(--brand2)" id="pDeliveries">0</div><div style="font-size:11px;color:var(--muted)">Deliveries</div></div>
+          <div><div style="font-family:'Space Mono',monospace;font-size:18px;color:var(--brand2)">4.9</div><div style="font-size:11px;color:var(--muted)">Rating</div></div>
+        </div>
+      </div>
+      <div class="earn-card" style="cursor:pointer" onclick="window.location.href='../customer/index.html'">
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:14px">
+          <span>🛍️ Switch to Customer App</span><span style="color:var(--muted)">›</span>
+        </div>
+      </div>
+      <div class="earn-card" style="cursor:pointer;margin-top:8px" onclick="window.location.href='../admin/index.html'">
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:14px">
+          <span>⚙️ Admin Panel</span><span style="color:var(--muted)">›</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <div class="nav-item active" onclick="showPage('active',this)">
+      <div style="font-size:20px">📍</div>Orders
+    </div>
+    <div class="nav-item" onclick="showPage('earnings',this)">
+      <div style="font-size:20px">💰</div>Earnings
+    </div>
+    <div class="nav-item" onclick="showPage('profile',this)">
+      <div style="font-size:20px">👤</div>Profile
+    </div>
+  </nav>
+</div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import Store from '../shared/store.js';
+
+const DRIVER_ID = 'u2';
+let isOnline = false;
+let myOrders = [];
+
+function init() {
+  loadOrders();
+  updateStats();
+  Store.onUpdate(() => { loadOrders(); updateStats(); });
+}
+
+function loadOrders() {
+  const all = Store.getOrders();
+  const newOrders = all.filter(o => o.status==='pending');
+  myOrders = all.filter(o => o.driverId===DRIVER_ID && o.status!=='delivered');
+  renderNewOrders(newOrders);
+  renderMyOrders();
+  updateStats();
+}
+
+function renderNewOrders(orders) {
+  const el = document.getElementById('newOrdersList');
+  if (!isOnline) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">🔴</div><div>Go online to see new orders</div></div>';
+    return;
+  }
+  if (!orders.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon pulse">📭</div><div>No new orders right now</div></div>';
+    return;
+  }
+  el.innerHTML = orders.map(o => `
+    <div class="order-card fade-in">
+      <div class="oc-header">
+        <span class="chip chip-pending">NEW</span>
+        <span class="oc-time">${timeAgo(o.createdAt)}</span>
+      </div>
+      <div class="oc-customer">👤 ${o.customerName}</div>
+      <div class="oc-address">📍 ${o.address}</div>
+      <div class="oc-items">${o.items.map(i=>`${i.qty}× ${i.name}`).join('\n')}</div>
+      <div class="oc-meta">
+        <span class="oc-total">$${Number(o.total).toFixed(2)}</span>
+        <span class="oc-tip">+$${(Number(o.total)*0.1).toFixed(2)} tip est.</span>
+      </div>
+      <div class="action-btns">
+        <button class="btn-accept" onclick="acceptOrder('${o.id}')">✓ Accept Order</button>
+        <button class="btn-reject" onclick="rejectOrder('${o.id}')">Skip</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderMyOrders() {
+  const el = document.getElementById('myOrdersList');
+  if (!myOrders.length) {
+    el.innerHTML = '<div class="empty" style="padding:20px 0"><div style="font-size:32px;margin-bottom:8px;opacity:.4">🚗</div><div>No active deliveries</div></div>';
+    return;
+  }
+  el.innerHTML = myOrders.map(o => {
+    const statusMap = { accepted:'chip-accepted', preparing:'chip-accepted', out_for_delivery:'chip-out', delivered:'chip-delivered' };
+    const nextBtn = o.status==='accepted'
+      ? `<button class="btn-picked" onclick="updateStatus('${o.id}','preparing')">🍳 Mark Preparing</button>`
+      : o.status==='preparing'
+      ? `<button class="btn-picked" onclick="updateStatus('${o.id}','out_for_delivery')">🚗 Picked Up</button>`
+      : o.status==='out_for_delivery'
+      ? `<button class="btn-delivered" onclick="updateStatus('${o.id}','delivered')">✅ Delivered</button>`
+      : '';
+    return `
+    <div class="order-card">
+      <div class="oc-header">
+        <span class="chip ${statusMap[o.status]||'chip-accepted'}">${o.status.replace('_',' ').toUpperCase()}</span>
+        <span class="oc-id">#${o.id.split('_')[1]}</span>
+      </div>
+      <div class="oc-customer">👤 ${o.customerName}</div>
+      <div class="oc-address">📍 ${o.address}</div>
+      <div class="oc-items">${o.items.map(i=>`${i.qty}× ${i.name}`).join('\n')}</div>
+      <div class="action-btns">${nextBtn}</div>
+    </div>`;
+  }).join('');
+}
+
+window.acceptOrder = id => {
+  Store.updateOrderStatus(id,'accepted',{driverId:DRIVER_ID});
+  loadOrders();
+  toast('✅ Order accepted!');
+};
+window.rejectOrder = id => { loadOrders(); toast('⏭ Skipped'); };
+window.updateStatus = (id,status) => {
+  Store.updateOrderStatus(id, status, status==='delivered'?{deliveredAt:new Date().toISOString()}:{});
+  loadOrders();
+  toast(status==='delivered'?'🎉 Delivered!':'📍 Status updated');
+};
+
+function updateStats() {
+  const all = Store.getOrders();
+  const today = new Date().toDateString();
+  const myDeliveries = all.filter(o=>o.driverId===DRIVER_ID && o.status==='delivered' && new Date(o.createdAt).toDateString()===today);
+  const earnings = myDeliveries.reduce((s,o)=>s+Number(o.total)*0.7,0);
+  document.getElementById('statDeliveries').textContent = myDeliveries.length;
+  document.getElementById('statEarnings').textContent = '$'+earnings.toFixed(0);
+  document.getElementById('pDeliveries').textContent = all.filter(o=>o.driverId===DRIVER_ID&&o.status==='delivered').length;
+  document.getElementById('earnBig').textContent = '$'+earnings.toFixed(2);
+  const breakdown = document.getElementById('earningsBreakdown');
+  if (breakdown) {
+    breakdown.innerHTML = myDeliveries.length ? myDeliveries.map(o=>`
+      <div class="earn-row"><span>#${o.id.split('_')[1]} – ${o.customerName}</span><span style="color:var(--brand2)">+$${(o.total*0.7).toFixed(2)}</span></div>`).join('')
+      : '<div style="color:var(--muted);font-size:14px;padding:12px 0">No deliveries today yet</div>';
+  }
+}
+
+window.toggleOnline = () => {
+  isOnline = !isOnline;
+  const btn = document.getElementById('onlineToggle');
+  document.getElementById('onlineLabel').textContent = isOnline ? 'Online ✓' : 'Go Online';
+  btn.classList.toggle('active', isOnline);
+  loadOrders();
+  toast(isOnline ? '🟢 You are online!' : '🔴 Gone offline');
+};
+
+window.showPage = (name, el) => {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById(name+'Page').classList.add('active');
+  el.classList.add('active');
+  if (name==='earnings') updateStats();
+};
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+function timeAgo(iso) {
+  const m = Math.floor((Date.now()-new Date(iso).getTime())/60000);
+  return m<1?'Just now':m<60?m+'m ago':Math.floor(m/60)+'h ago';
+}
+
+init();
+</script>
+
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("./sw.js").then(r => console.log("SW registered")).catch(e => console.log("SW error",e));
+}
+</script>
+</body>
+</html>
