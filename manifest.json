@@ -1,0 +1,14 @@
+{
+  "name": "DriveOS – Delivery Driver",
+  "short_name": "DriveOS",
+  "description": "Driver dashboard for QuickDrop deliveries",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#050C0A",
+  "theme_color": "#00C48C",
+  "icons": [
+    { "src": "../shared/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "../shared/icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
